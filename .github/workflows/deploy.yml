@@ -1,0 +1,57 @@
+name: Publish production and staging
+on:
+  workflow_run:
+    workflows: [Validate games]
+    types: [completed]
+    branches: [main, staging]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: zoe-games-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out production
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          path: production
+          persist-credentials: false
+      - name: Check out staging
+        uses: actions/checkout@v6
+        with:
+          ref: staging
+          path: staging-source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate both snapshots
+        run: |
+          python3 production/scripts/check.py
+          python3 staging-source/scripts/check.py
+      - name: Package both environments
+        run: python3 production/scripts/build.py --production production --staging staging-source --output public
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: public
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy production and staging
+        id: deployment
+        uses: actions/deploy-pages@v4

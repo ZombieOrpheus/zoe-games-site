@@ -1,0 +1,58 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Little Elsewhere | Living Text Art Library</title><style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101b18;color:#e9f1e8}*{box-sizing:border-box}body{margin:0}main{max-width:1100px;margin:auto;padding:20px}h1{margin-bottom:4px}p{color:#b3cabb;line-height:1.5}.tools{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}input,button,select{background:#263e33;color:#e9f1e8;border:1px solid #587363;border-radius:9px;padding:10px;font:inherit}input{flex:1;min-width:180px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,315px),1fr));gap:14px}.card{border:1px solid #355643;border-radius:13px;background:#1c3027;overflow:hidden}.card canvas{width:100%;height:auto;display:block;background:#091510;image-rendering:pixelated}.info{padding:13px}.info h2{font-size:17px;margin:3px 0}.info p{font-size:13px;margin:7px 0}.meta{font-size:11px;color:#a6d1b1}.buttons{display:flex;gap:8px;margin-top:12px}.buttons button{font-size:12px;padding:7px 9px}.count{font-size:12px;color:#b2c9b8}.note{padding:14px;border:1px solid #3d614b;border-radius:12px;margin-top:18px;color:#c8d9cd}
+</style></head><body><nav aria-label="Game navigation" style="max-width:1000px;margin:0 auto 16px;padding:10px 0;font:13px system-ui"><a style="color:#d8e89c" href="../../">← All ZOE Games</a><span id="environment-label" style="margin-left:18px;color:#e9c97b"></span></nav><script>if(/(?:^|\/)staging(?:\/|$)/.test(location.pathname)){document.getElementById('environment-label').textContent='STAGING · Test build';document.title='[STAGING] '+document.title;}</script><main><div class="meta">LITTLE ELSEWHERE / VISUAL RESEARCH</div><h1>Living Text Art Library</h1><p>Fourteen animated experiments in character-cell landscapes, visual illusions, and expressive typography. Every example is generated live, without image assets. Tap Pause to study the frames, or Copy recipe to reuse its parameters.</p><div class="tools"><input id="search" placeholder="Search techniques or uses…" aria-label="Search"><select id="category" aria-label="Filter category"><option value="">All categories</option><option>Terrain</option><option>Motion</option><option>Magic</option><option>Architecture</option></select><button id="toggle">Pause all</button></div><div class="count" id="count"></div><div class="grid" id="gallery"></div><div class="note"><b>Design principle:</b> Use seamless colored cells as the ground, animated characters as detail, and deliberate anomalies as clues. A world can feel alive without conventional sprites. Historical inspirations include ANSI/BBS art, PETSCII, ASCII demoscene effects, and roguelike display systems.</div></main><script>
+(()=>{
+const techniques=[
+['Colored cell mosaics','Terrain','Seamless grass, paths and woodland','Each character position owns a background color.'],
+['Half-block subpixels','Terrain','Coastlines and sloping boundaries','Upper and lower half blocks double vertical color resolution.'],
+['Density dithering','Terrain','Fog, shadows and distance','A ramp of sparse to dense characters suggests depth.'],
+['Asynchronous water','Motion','Ponds and streams','Neighboring water cells animate out of phase.'],
+['Traveling wind','Motion','Grassland and swaying trees','A moving wave shifts individual character shapes.'],
+['Heat-field flames','Motion','Torches and campfires','Noise and vertical decay shape a flickering flame.'],
+['Single-cell metamorphosis','Magic','Pulsing artifacts and discoveries','Cycle . o O @ O o . in a single position.'],
+['Radial ripples','Motion','Water disturbance and spells','Concentric wavefronts spread from a point.'],
+['Drifting particles','Motion','Fireflies, pollen and snowfall','Small glyphs travel independently through the field.'],
+['Metaballs','Magic','Living, merging energy','Nearby influence fields merge into organic shapes.'],
+['Color-cycling plasma','Magic','Enchanted portals and dream spaces','Sine waves drive shifting character density and color.'],
+['Progressive reveal','Magic','Secrets and map discovery','Cells appear in a spreading wave from a focal point.'],
+['Box-drawing architecture','Architecture','Rooms, walls, windows and furniture','Line characters form connected structures.'],
+['Selective text corruption','Magic','Hauntings and unstable realities','Occasional cells transform into unexpected symbols.']
+];
+const C=20,R=9,S=16,canvasW=C*S,canvasH=R*S,grid=document.querySelector('#gallery');
+let running=true,clock=0,last=0;
+const palette=['#315d43','#4f8855','#79ac69','#9bc67c','#c5b38a','#4c91ad','#78b9ce'];
+const glyphs=[' ','·',',',':','░','▒','▓','█'];
+function draw(canvas,id,t){
+const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvasW,canvasH);ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 15px monospace';
+for(let y=0;y<R;y++)for(let x=0;x<C;x++){
+let v=0,ch=' ',fg='#cde6bc',bg='#10241d',a=x/C,b=y/R,phase=t*.002,dist=Math.hypot(x-10,y-4);
+switch(id){
+case 0:bg=palette[(Math.sin(x*.5)+Math.cos(y*.7)>0?2:0)+(x>7&&x<13&&y>3?2:0)];ch=(x*7+y*13)%5===0?'\u0027':' ';break;
+case 1:bg=y<4?'#69a9bd':'#76a767';ch=y===3+(Math.floor(x/5)%2)?'▄':y===4?'▀':' ';fg='#c9bd85';break;
+case 2:v=(x+y*.65)/24+Math.sin(phase+x*.3)*.07;ch=glyphs[Math.min(7,Math.max(0,Math.floor(v*9)))];fg='#9abca9';break;
+case 3:bg='#397e9d';ch=['~','≈','∼','~'][Math.floor(t/260+x*.73+y*.43)%4];fg='#c5edf1';break;
+case 4:bg='#629b57';ch=['\u0027',',','|','/','\\'][Math.abs(Math.floor(Math.sin(x*.42-phase+y*.14)*2+2))%5];fg='#d1edab';break;
+case 5:v=Math.max(0,1-Math.abs(x-10+Math.sin(y*2+phase)*2)/(5*(1-y/R)))*Math.max(0,1-y/R);ch=glyphs[Math.min(7,Math.floor(v*9))];fg=v>.65?'#fff3a1':v>.35?'#f7a45b':'#9d4635';break;
+case 6:ch=x===10&&y===4?['.','o','O','@','O','o','.'][Math.floor(t/170)%7]:' ';fg='#ffe8a4';break;
+case 7:v=Math.abs(dist-(t/250)%12);ch=v<.55?'O':v<1.1?'o':v<1.6?'.':' ';fg='#8ddbe4';break;
+case 8:v=Math.sin(x*11.3+y*7.7);ch=((x*13+y*19)%23)<3?['.','+','*','✦'][Math.floor(t/260+x+y)%4]:' ';fg='#f4e5a0';break;
+case 9:v=3.7/(2+Math.pow(x-6-Math.sin(phase)*2,2)+Math.pow(y-4,2))+4.2/(2+Math.pow(x-14+Math.sin(phase)*2,2)+Math.pow(y-4,2));ch=glyphs[Math.min(7,Math.floor(v*8))];fg='#b1d9ff';break;
+case 10:v=(Math.sin(x*.7+phase)+Math.sin(y*.9-phase)+Math.sin((x+y)*.45+phase))/3;ch=glyphs[Math.min(7,Math.max(0,Math.floor((v+1)*4)))];fg=['#8cb9e4','#d6a1d8','#b0e6b1'][Math.floor((v+1)*1.4)%3];break;
+case 11:v=dist-(t/220)%15;ch=v<0?((x+y)%4?'·':'✦'):' ';fg='#b6edc5';break;
+case 12:ch=y===1||y===7?'─':x===2||x===17?'│':' ';if((x===2||x===17)&&(y===1||y===7))ch=x===2?(y===1?'┌':'└'):(y===1?'┐':'┘');if(y===4&&x>6&&x<13)ch='═';if(y===5&&x===9)ch='⌂';fg='#d8c8a3';break;
+case 13:bg='#355e48';ch=(x*11+y*7)%9===0?'♣':'·';if((x*7+y*13+Math.floor(t/280))%43===0)ch=['#','%','@','?'][Math.floor(t/280)%4];fg='#b8e2a6';break;
+}
+ctx.fillStyle=bg;ctx.fillRect(x*S,y*S,S,S);if(ch!==' '){ctx.fillStyle=fg;ctx.fillText(ch,x*S+S/2,y*S+S/2)}
+}
+}
+const cards=techniques.map((a,i)=>{let card=document.createElement('article');card.className='card';card.innerHTML='<canvas width="'+canvasW+'" height="'+canvasH+'"></canvas><div class="info"><div class="meta">'+a[1]+' · Technique '+String(i+1).padStart(2,'0')+'</div><h2>'+a[0]+'</h2><p>'+a[2]+'</p><p>'+a[3]+'</p><div class="buttons"><button class="restart">Restart</button><button class="copy">Copy recipe</button></div></div>';
+card.querySelector('.restart').addEventListener('click',()=>{card.dataset.offset=String(clock)});
+card.querySelector('.copy').addEventListener('click',async()=>{const recipe=JSON.stringify({id:i+1,name:a[0],category:a[1],application:a[2],method:a[3],grid:[C,R],cellSize:S},null,2);try{await navigator.clipboard.writeText(recipe);card.querySelector('.copy').textContent='Copied!';setTimeout(()=>card.querySelector('.copy').textContent='Copy recipe',1000)}catch{window.prompt('Copy recipe:',recipe)}});
+grid.appendChild(card);return card});
+function filter(){const q=document.querySelector('#search').value.toLowerCase(),cat=document.querySelector('#category').value;let count=0;cards.forEach((card,i)=>{let a=techniques[i],show=(!cat||a[1]===cat)&&a.join(' ').toLowerCase().includes(q);card.hidden=!show;if(show)count++});document.querySelector('#count').textContent=count+' of 14 techniques'}
+document.querySelector('#search').addEventListener('input',filter);document.querySelector('#category').addEventListener('change',filter);
+document.querySelector('#toggle').addEventListener('click',e=>{running=!running;e.target.textContent=running?'Pause all':'Play all'});
+function loop(now){if(running)clock+=last?Math.min(now-last,80):0;last=now;cards.forEach((card,i)=>{if(!card.hidden)draw(card.querySelector('canvas'),i,clock-Number(card.dataset.offset||0))});requestAnimationFrame(loop)}
+filter();requestAnimationFrame(loop)
+})();
+</script></body></html>
