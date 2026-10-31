@@ -15,7 +15,7 @@ Staging is publicly accessible for testing, has a test banner, and requests no i
 
 ## GitHub Pages setup
 
-The publish workflow sets Pages Source to **GitHub Actions** to prevent the legacy branch publisher from overwriting staging. If permissions prevent this automatic setup, set it in Settings → Pages → Build and deployment. Keep the custom domain `zoe.games`. The `github-pages` environment must permit deployments from `main`.
+One-time setup: in Settings → Pages → Build and deployment, set Source to **GitHub Actions** to prevent the legacy branch publisher from overwriting staging. The workflow checks this setting and gives a clear error until it is set. After changing it, run the Publish production and staging workflow on main. Keep the custom domain `zoe.games`. The `github-pages` environment must permit deployments from `main`.
 
 `Validate games` runs checks for pushes and pull requests. After a successful push check, `Publish production and staging` runs on the default branch. It packages `main` at the root and the separate `staging` branch under `/staging/`, then deploys the combined artifact. This default-branch deployment avoids granting the staging branch direct production-environment deployment rights. Fork PRs do not deploy. No third-party hosting account or secret is needed.
 

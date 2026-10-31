@@ -41,14 +41,14 @@ jobs:
           python3 staging-source/scripts/check.py
       - name: Package both environments
         run: python3 production/scripts/build.py --production production --staging staging-source --output public
-      - name: Use workflow publishing for both environments
+      - name: Verify Pages publishing source
         uses: actions/github-script@v7
         with:
           script: |
             const route = { owner: context.repo.owner, repo: context.repo.repo };
             const { data } = await github.request('GET /repos/{owner}/{repo}/pages', route);
             if (data.build_type !== 'workflow') {
-              await github.request('PUT /repos/{owner}/{repo}/pages', { ...route, build_type: 'workflow' });
+              core.setFailed('One-time setup required: Settings > Pages > Build and deployment > Source > GitHub Actions. Then rerun this workflow on main.');
             }
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
